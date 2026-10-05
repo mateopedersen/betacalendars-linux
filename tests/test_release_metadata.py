@@ -4,7 +4,6 @@ import unittest
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
-
 ROOT = Path(__file__).resolve().parents[1]
 
 
@@ -20,8 +19,18 @@ class ReleaseMetadataTests(unittest.TestCase):
         resources.update(
             "https://www.betacalendars.com/" + month + "-calendar.html"
             for month in (
-                "january", "february", "march", "april", "may", "june",
-                "july", "august", "september", "october", "november", "december",
+                "january",
+                "february",
+                "march",
+                "april",
+                "may",
+                "june",
+                "july",
+                "august",
+                "september",
+                "october",
+                "november",
+                "december",
             )
         )
         markdown_links = set(re.findall(r"\[[^]]+\]\((https://[^)]+)\)", description))
@@ -63,8 +72,12 @@ class ReleaseMetadataTests(unittest.TestCase):
         self.assertEqual(metadata.findtext("id"), "com.betacalendars.Studio")
         links = {item.attrib["type"]: item.text for item in metadata.findall("url")}
         self.assertEqual(links["homepage"], "https://www.betacalendars.com/")
-        self.assertEqual(links["vcs-browser"], "https://github.com/mateopedersen/betacalendars-linux")
-        self.assertEqual(links["bugtracker"], "https://github.com/mateopedersen/betacalendars-linux/issues")
+        self.assertEqual(
+            links["vcs-browser"], "https://github.com/mateopedersen/betacalendars-linux"
+        )
+        self.assertEqual(
+            links["bugtracker"], "https://github.com/mateopedersen/betacalendars-linux/issues"
+        )
 
 
 if __name__ == "__main__":
