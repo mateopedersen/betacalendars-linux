@@ -14,7 +14,7 @@ class SvgExportTests(unittest.TestCase):
         self.assertIn('width="595.28pt"', svg)
         self.assertIn('height="841.89pt"', svg)
         self.assertIn("February 2027", svg)
-        self.assertEqual(svg.count('<line '), 37)
+        self.assertEqual(svg.count("<line "), 37)
 
     def test_blank_designer_options(self):
         svg = render_month_svg(
