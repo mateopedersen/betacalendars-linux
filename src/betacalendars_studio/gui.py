@@ -152,6 +152,8 @@ class StudioWindow:
         .calendar-adjacent { color: #98a2b3; }
         .calendar-today { border: 2px solid #5b5bd6; border-radius: 8px; }
         .month-card { padding: 9px; border: 1px solid #d9e1ec; border-radius: 10px; background: #fff; }
+        .year-card { padding: 5px; border: 1px solid #d9e1ec; border-radius: 8px; background: #fff; }
+        .year-day { min-width: 20px; min-height: 20px; padding: 1px; font-size: 11px; }
         .metric-card { padding: 12px; border: 1px solid #d9e1ec; border-radius: 10px; }
         .muted { color: #64748b; }
         """
@@ -375,7 +377,7 @@ class StudioWindow:
         start = self._selected_week_start(self.year_view_week_dropdown)
         for month in range(1, 13):
             card = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=3)
-            card.add_css_class("month-card")
+            card.add_css_class("year-card")
             title = Gtk.Button(label=MONTH_NAMES[month - 1])
             title.connect("clicked", lambda _button, y=year, m=month: self._set_month(y, m))
             card.append(title)
@@ -388,6 +390,7 @@ class StudioWindow:
             for row_index, row in enumerate(month_grid(year, month, start, False, True), 1):
                 for column_index, cell in enumerate(row):
                     day_button = Gtk.Button(label=str(cell.day) if cell else "")
+                    day_button.add_css_class("year-day")
                     day_button.set_sensitive(cell is not None)
                     day_button.set_has_frame(False)
                     if cell:
@@ -396,7 +399,7 @@ class StudioWindow:
                         )
                     table.attach(day_button, column_index, row_index, 1, 1)
             card.append(table)
-            self.year_grid_holder.attach(card, (month - 1) % 3, (month - 1) // 3, 1, 1)
+            self.year_grid_holder.attach(card, (month - 1) % 4, (month - 1) // 4, 1, 1)
 
     def _build_designer_page(self):
         page = self._page(
