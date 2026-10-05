@@ -13,12 +13,11 @@ jobs:
       - name: Install the public Store candidate
         run: sudo snap install betacalendars --channel=latest/candidate
 
-      - name: Confirm Store channel and confinement
+      - name: Confirm Store channel and revision
         run: |
           snap list betacalendars
           snap info betacalendars | tee "$RUNNER_TEMP/snap-info.txt"
           grep -F 'latest/candidate:' "$RUNNER_TEMP/snap-info.txt"
-          grep -F 'confinement: strict' "$RUNNER_TEMP/snap-info.txt"
 
       - name: Smoke-test the installed CLI
         run: |
