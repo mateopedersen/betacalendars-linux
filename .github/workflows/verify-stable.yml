@@ -1,0 +1,50 @@
+name: Verify stable Snap Store install
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify-stable:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Install the public stable Store release
+        run: sudo snap install betacalendars
+
+      - name: Confirm stable channel and version
+        run: |
+          snap list betacalendars
+          snap info betacalendars | tee "$RUNNER_TEMP/snap-info.txt"
+          grep -F 'latest/stable:' "$RUNNER_TEMP/snap-info.txt"
+          grep -F '1.0.0' "$RUNNER_TEMP/snap-info.txt"
+
+      - name: Smoke-test the installed CLI
+        run: |
+          betacalendars month 2027 2 --week-start monday
+          betacalendars year 2027 --week-start sunday
+          betacalendars inspect 2021-01-01
+          betacalendars grid 2027 8
+          betacalendars validate 2027
+          output_dir="$HOME/snap/betacalendars/common"
+          mkdir -p "$output_dir"
+          betacalendars blank --month 2027-02 --paper a4 --orientation portrait --output "$output_dir/february.svg"
+          test -s "$output_dir/february.svg"
+
+      - name: Install a virtual display
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes xvfb
+
+      - name: Launch the installed GTK application
+        run: |
+          set +e
+          GTK_A11Y=none timeout --signal=TERM 15s xvfb-run -a snap run betacalendars.betacalendars-studio >"$RUNNER_TEMP/gui.log" 2>&1
+          status=$?
+          set -e
+          cat "$RUNNER_TEMP/gui.log"
+          if [ "$status" -ne 124 ]; then
+            echo "GUI test exited with status $status before the 15-second launch check completed." >&2
+            exit 1
+          fi
