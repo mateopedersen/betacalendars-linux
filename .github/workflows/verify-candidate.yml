@@ -26,8 +26,10 @@ jobs:
           betacalendars inspect 2021-01-01
           betacalendars grid 2027 8
           betacalendars validate 2027
-          betacalendars blank --month 2027-02 --paper a4 --orientation portrait --output "$RUNNER_TEMP/february.svg"
-          test -s "$RUNNER_TEMP/february.svg"
+          output_dir="$HOME/snap/betacalendars/common"
+          mkdir -p "$output_dir"
+          betacalendars blank --month 2027-02 --paper a4 --orientation portrait --output "$output_dir/february.svg"
+          test -s "$output_dir/february.svg"
 
       - name: Install a virtual display
         run: |
