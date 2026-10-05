@@ -54,7 +54,9 @@ class GeometryTests(unittest.TestCase):
                         geometry = month_geometry(year, month, start)
                         rows = month_grid(year, month, start, show_adjacent=True)
                         flat = [cell for row in rows for cell in row]
-                        in_month = [cell for cell in flat if cell.year == year and cell.month == month]
+                        in_month = [
+                            cell for cell in flat if cell.year == year and cell.month == month
+                        ]
                         expected = [date(year, month, day) for day in range(1, geometry.days + 1)]
                         self.assertEqual(in_month, expected)
                         self.assertEqual(len(flat), geometry.natural_rows * 7)
