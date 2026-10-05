@@ -1,0 +1,51 @@
+name: betacalendars
+title: Beta Calendars Studio
+version: "1.0.0"
+summary: Offline calendar, print-layout and civil-date tools for Linux
+description: |
+  Beta Calendars Studio is an offline-first calendar layout and civil-date utility for Linux.
+  Browse month and year grids, compare Monday-first and Sunday-first layouts, inspect ISO week
+  boundaries, design blank printable calendars, and export clean SVG layouts without uploading
+  personal calendar data.
+
+  Core calendar calculations run locally. The optional resource library opens human-readable
+  printable references only when the user chooses a link.
+license: MIT
+website: https://www.betacalendars.com/
+source-code: https://github.com/mateopedersen/betacalendars-linux
+issues: https://github.com/mateopedersen/betacalendars-linux/issues
+contact: https://github.com/mateopedersen/betacalendars-linux/issues
+base: core24
+confinement: strict
+grade: stable
+icon: snap/gui/betacalendars.png
+apps:
+  betacalendars-studio:
+    command: bin/betacalendars-studio
+    common-id: com.betacalendars.Studio
+    desktop: usr/share/applications/com.betacalendars.Studio.desktop
+    plugs:
+      - desktop
+      - wayland
+      - x11
+    environment:
+      GTK_USE_PORTAL: "1"
+  betacalendars:
+    command: bin/betacalendars
+
+parts:
+  betacalendars-studio:
+    plugin: python
+    source: .
+    # The GNOME extension adds calendar-service; this app never reads calendars.
+    # GTK4 and PyGObject are staged directly, with portal-backed file selection.
+    stage-packages:
+      - gir1.2-gtk-4.0
+      - python3-gi
+      - adwaita-icon-theme
+    override-build: |
+      craftctl default
+      install -D -m 0644 "$CRAFT_PART_SRC/data/org.betacalendars.Studio.metainfo.xml" \
+        "$CRAFT_PART_INSTALL/usr/share/metainfo/org.betacalendars.Studio.metainfo.xml"
+      install -D -m 0644 "$CRAFT_PART_SRC/data/com.betacalendars.Studio.desktop" \
+        "$CRAFT_PART_INSTALL/usr/share/applications/com.betacalendars.Studio.desktop"
