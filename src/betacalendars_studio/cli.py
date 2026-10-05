@@ -4,13 +4,12 @@ import argparse
 import sys
 from datetime import date
 from pathlib import Path
-from typing import List, Optional, Sequence, Tuple
+from typing import List, Optional, Sequence
 
 from . import __version__
 from .calendar_engine import (
     WeekStart,
     inspect_date,
-    is_leap_year,
     month_geometry,
     month_grid,
     validate_month,
@@ -19,11 +18,23 @@ from .calendar_engine import (
 from .svg_export import LAYOUTS, render_month_svg
 
 
-def _month_grid_text(year: int, month: int, start: WeekStart, adjacent: bool = False, normalize_six: bool = False) -> str:
+def _month_grid_text(
+    year: int, month: int, start: WeekStart, adjacent: bool = False, normalize_six: bool = False
+) -> str:
     geometry = month_geometry(year, month, start)
     rows = month_grid(year, month, start, show_adjacent=adjacent, normalize_six=normalize_six)
     lines = [date(year, month, 1).strftime("%B %Y"), " ".join(start.labels)]
-    lines.extend(" ".join("%3d" % cell.day if cell and cell.month == month else ("%3d" % cell.day if cell else "   ") for cell in row) for row in rows)
+    lines.extend(
+        " ".join(
+            (
+                "%3d" % cell.day
+                if cell and cell.month == month
+                else ("%3d" % cell.day if cell else "   ")
+            )
+            for cell in row
+        )
+        for row in rows
+    )
     lines.extend(("Natural rows: %d" % geometry.natural_rows, "Days: %d" % geometry.days))
     return "\n".join(lines)
 
@@ -39,7 +50,7 @@ def _year_text(year: int, start: WeekStart) -> str:
         blocks.append(block)
     lines = [str(year)]
     for group_start in range(0, 12, 3):
-        group = blocks[group_start:group_start + 3]
+        group = blocks[group_start : group_start + 3]
         for line_index in range(8):
             lines.append("   ".join(block[line_index] for block in group))
         lines.append("")
@@ -70,16 +81,18 @@ def _geometry_text(year: int, month: int) -> str:
     for start in WeekStart:
         geometry = month_geometry(year, month, start)
         checks = validate_month(year, month, start)
-        lines.extend([
-            "",
-            "%s-first" % start.value.title(),
-            "  First weekday: %s" % date(year, month, 1).strftime("%A"),
-            "  Days in month: %d" % geometry.days,
-            "  Leading cells: %d" % geometry.leading_cells,
-            "  Natural rows: %d" % geometry.natural_rows,
-            "  Grid size: %d" % geometry.grid_size,
-            "  Invariants: %s" % ("PASS" if all(checks.values()) else "FAIL"),
-        ])
+        lines.extend(
+            [
+                "",
+                "%s-first" % start.value.title(),
+                "  First weekday: %s" % date(year, month, 1).strftime("%A"),
+                "  Days in month: %d" % geometry.days,
+                "  Leading cells: %d" % geometry.leading_cells,
+                "  Natural rows: %d" % geometry.natural_rows,
+                "  Grid size: %d" % geometry.grid_size,
+                "  Invariants: %s" % ("PASS" if all(checks.values()) else "FAIL"),
+            ]
+        )
     return "\n".join(lines)
 
 
@@ -125,10 +138,14 @@ def build_parser() -> argparse.ArgumentParser:
     validate_parser.add_argument("year", type=int)
 
     blank_parser = commands.add_parser("blank", help="create a printable blank calendar SVG")
-    blank_parser.add_argument("--month", help="month in YYYY-MM form; defaults to the current month")
+    blank_parser.add_argument(
+        "--month", help="month in YYYY-MM form; defaults to the current month"
+    )
     blank_parser.add_argument("--layout", choices=LAYOUTS, default="blank-month")
     blank_parser.add_argument("--paper", choices=("a4", "letter"), default="a4")
-    blank_parser.add_argument("--orientation", choices=("portrait", "landscape"), default="portrait")
+    blank_parser.add_argument(
+        "--orientation", choices=("portrait", "landscape"), default="portrait"
+    )
     blank_parser.add_argument("--week-start", type=_week_start, default=WeekStart.MONDAY)
     blank_parser.add_argument("--hide-title", action="store_true")
     blank_parser.add_argument("--hide-weekdays", action="store_true")
@@ -148,7 +165,9 @@ def _run(args: argparse.Namespace) -> int:
         print(__version__)
         return 0
     if args.command == "month":
-        output = _month_grid_text(args.year, args.month, args.week_start, args.show_adjacent, args.fixed_six)
+        output = _month_grid_text(
+            args.year, args.month, args.week_start, args.show_adjacent, args.fixed_six
+        )
         if args.export_svg:
             _write_svg(render_month_svg(args.year, args.month, args.week_start), args.export_svg)
         print(output)
