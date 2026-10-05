@@ -12,21 +12,28 @@ from typing import Optional, Sequence
 from . import __version__
 from .calendar_engine import (
     WeekStart,
-    days_in_month,
     inspect_date,
-    is_leap_year,
     month_geometry,
     month_grid,
     move_month,
     validate_month,
     validate_year,
 )
-from .svg_export import LAYOUTS, render_month_svg
-
+from .svg_export import render_month_svg
 
 MONTH_NAMES = (
-    "January", "February", "March", "April", "May", "June",
-    "July", "August", "September", "October", "November", "December",
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December",
 )
 WEEK_STARTS = (WeekStart.MONDAY, WeekStart.SUNDAY)
 PRESETS = (
@@ -64,8 +71,11 @@ def _gtk():
             existing = [str(path) for path in typelib_paths if path.is_dir()]
             if existing:
                 prior = os.environ.get("GI_TYPELIB_PATH")
-                os.environ["GI_TYPELIB_PATH"] = os.pathsep.join(existing + ([prior] if prior else []))
+                os.environ["GI_TYPELIB_PATH"] = os.pathsep.join(
+                    existing + ([prior] if prior else [])
+                )
         import gi
+
         gi.require_version("Gtk", "4.0")
         from gi.repository import Gio, GLib, Gtk
     except (ImportError, ValueError) as error:
@@ -167,7 +177,9 @@ class StudioWindow:
         return root
 
     def _spin_year(self, year: int):
-        adjustment = self.Gtk.Adjustment(value=year, lower=1, upper=9999, step_increment=1, page_increment=10)
+        adjustment = self.Gtk.Adjustment(
+            value=year, lower=1, upper=9999, step_increment=1, page_increment=10
+        )
         spin = self.Gtk.SpinButton(adjustment=adjustment, climb_rate=1, digits=0)
         spin.set_numeric(True)
         return spin
@@ -187,7 +199,8 @@ class StudioWindow:
 
     def _build_calendar_page(self):
         page = self._page(
-            "calendar", "Calendar",
+            "calendar",
+            "Calendar",
             "Browse a month with deterministic Gregorian dates and natural four to six week rows.",
         )
         self.calendar_month_dropdown = _drop_down(self.Gtk, MONTH_NAMES)
@@ -210,12 +223,23 @@ class StudioWindow:
         self.show_weeks.connect("toggled", self._refresh_month)
         self.show_adjacent.connect("toggled", self._refresh_month)
         self.normalize_six.connect("toggled", self._refresh_month)
-        page.append(self._control_row(previous, today, next_button, self.calendar_month_dropdown, self.calendar_year_spin))
-        page.append(self._control_row(
-            self.Gtk.Label(label="Week starts:"), self.calendar_week_dropdown,
-            self.show_weeks, self.show_adjacent, self.normalize_six,
-        ))
-        self.calendar_grid_holder = self.Gtk.Box(orientation=self.Gtk.Orientation.VERTICAL, spacing=5)
+        page.append(
+            self._control_row(
+                previous, today, next_button, self.calendar_month_dropdown, self.calendar_year_spin
+            )
+        )
+        page.append(
+            self._control_row(
+                self.Gtk.Label(label="Week starts:"),
+                self.calendar_week_dropdown,
+                self.show_weeks,
+                self.show_adjacent,
+                self.normalize_six,
+            )
+        )
+        self.calendar_grid_holder = self.Gtk.Box(
+            orientation=self.Gtk.Orientation.VERTICAL, spacing=5
+        )
         self.calendar_grid_holder.set_vexpand(True)
         self.calendar_grid_holder.set_valign(self.Gtk.Align.FILL)
         page.append(self.calendar_grid_holder)
@@ -283,7 +307,9 @@ class StudioWindow:
             if col_offset:
                 visible = [cell for cell in row if cell is not None]
                 row_date = visible[0]
-                week = self.GLib.DateTime.new_local(row_date.year, row_date.month, row_date.day, 12, 0, 0).get_week_of_year()
+                week = self.GLib.DateTime.new_local(
+                    row_date.year, row_date.month, row_date.day, 12, 0, 0
+                ).get_week_of_year()
                 number = Gtk.Label(label="%02d" % week)
                 number.add_css_class("muted")
                 table.attach(number, 0, row_index, 1, 1)
@@ -300,21 +326,33 @@ class StudioWindow:
                 if cell == self.today:
                     button.add_css_class("calendar-today")
                 button.set_tooltip_text(cell.strftime("%A, %B %d, %Y"))
-                button.connect("clicked", lambda _button, selected=cell: self._open_inspector(selected))
+                button.connect(
+                    "clicked", lambda _button, selected=cell: self._open_inspector(selected)
+                )
                 table.attach(button, column_index + col_offset, row_index, 1, 1)
         self.calendar_grid_holder.append(table)
         geometry = month_geometry(self.year, self.month, start)
-        footer = Gtk.Label(label="%d days · %d natural rows · %s-first" % (geometry.days, geometry.natural_rows, start.value.title()), xalign=0)
+        footer = Gtk.Label(
+            label="%d days · %d natural rows · %s-first"
+            % (geometry.days, geometry.natural_rows, start.value.title()),
+            xalign=0,
+        )
         footer.add_css_class("muted")
         self.calendar_grid_holder.append(footer)
 
     def _build_year_page(self):
-        page = self._page("year", "Year", "Twelve compact month grids. Select any date to inspect it.")
+        page = self._page(
+            "year", "Year", "Twelve compact month grids. Select any date to inspect it."
+        )
         self.year_view_spin = self._spin_year(self.year)
         self.year_view_week_dropdown = _drop_down(self.Gtk, ("Monday first", "Sunday first"))
         self.year_view_spin.connect("value-changed", self._refresh_year)
         self.year_view_week_dropdown.connect("notify::selected", self._refresh_year)
-        page.append(self._control_row(GtkLabel(self.Gtk, "Year:"), self.year_view_spin, self.year_view_week_dropdown))
+        page.append(
+            self._control_row(
+                GtkLabel(self.Gtk, "Year:"), self.year_view_spin, self.year_view_week_dropdown
+            )
+        )
         self.year_grid_holder = self.Gtk.Grid(column_spacing=12, row_spacing=12)
         self.year_grid_holder.set_column_homogeneous(True)
         self.year_grid_holder.set_row_homogeneous(True)
@@ -353,17 +391,22 @@ class StudioWindow:
                     day_button.set_sensitive(cell is not None)
                     day_button.set_has_frame(False)
                     if cell:
-                        day_button.connect("clicked", lambda _button, d=cell: self._open_inspector(d))
+                        day_button.connect(
+                            "clicked", lambda _button, d=cell: self._open_inspector(d)
+                        )
                     table.attach(day_button, column_index, row_index, 1, 1)
             card.append(table)
             self.year_grid_holder.attach(card, (month - 1) % 3, (month - 1) // 3, 1, 1)
 
     def _build_designer_page(self):
         page = self._page(
-            "designer", "Blank Designer",
+            "designer",
+            "Blank Designer",
             "Create an empty print layout. No personal events or schedule data are added.",
         )
-        self.design_layout = _drop_down(self.Gtk, ("Month Grid", "Blank Month", "Weekly Planner", "Notes Calendar"))
+        self.design_layout = _drop_down(
+            self.Gtk, ("Month Grid", "Blank Month", "Weekly Planner", "Notes Calendar")
+        )
         self.design_paper = _drop_down(self.Gtk, ("A4", "US Letter"))
         self.design_orientation = _drop_down(self.Gtk, ("Portrait", "Landscape"))
         self.design_week = _drop_down(self.Gtk, ("Monday first", "Sunday first"))
@@ -378,14 +421,39 @@ class StudioWindow:
         self.design_minimal = self.Gtk.CheckButton(label="Minimal grid")
         controls = GtkBox(self.Gtk, self.Gtk.Orientation.VERTICAL, 7)
         controls.append(self._control_row(GtkLabel(self.Gtk, "Layout:"), self.design_layout))
-        controls.append(self._control_row(GtkLabel(self.Gtk, "Paper:"), self.design_paper, GtkLabel(self.Gtk, "Orientation:"), self.design_orientation))
+        controls.append(
+            self._control_row(
+                GtkLabel(self.Gtk, "Paper:"),
+                self.design_paper,
+                GtkLabel(self.Gtk, "Orientation:"),
+                self.design_orientation,
+            )
+        )
         controls.append(self._control_row(GtkLabel(self.Gtk, "Week start:"), self.design_week))
-        for row in ((self.design_title, self.design_headers), (self.design_notes, self.design_lines), (self.design_weeks, self.design_fixed, self.design_minimal)):
+        for row in (
+            (self.design_title, self.design_headers),
+            (self.design_notes, self.design_lines),
+            (self.design_weeks, self.design_fixed, self.design_minimal),
+        ):
             controls.append(self._control_row(*row))
-        for widget in (self.design_layout, self.design_paper, self.design_orientation, self.design_week,
-                       self.design_title, self.design_headers, self.design_notes, self.design_lines,
-                       self.design_weeks, self.design_fixed, self.design_minimal):
-            widget.connect("notify::selected", self._refresh_previews) if isinstance(widget, self.Gtk.DropDown) else widget.connect("toggled", self._refresh_previews)
+        for widget in (
+            self.design_layout,
+            self.design_paper,
+            self.design_orientation,
+            self.design_week,
+            self.design_title,
+            self.design_headers,
+            self.design_notes,
+            self.design_lines,
+            self.design_weeks,
+            self.design_fixed,
+            self.design_minimal,
+        ):
+            (
+                widget.connect("notify::selected", self._refresh_previews)
+                if isinstance(widget, self.Gtk.DropDown)
+                else widget.connect("toggled", self._refresh_previews)
+            )
         body = self.Gtk.Paned(orientation=self.Gtk.Orientation.HORIZONTAL)
         body.set_position(430)
         body.set_start_child(controls)
@@ -413,11 +481,19 @@ class StudioWindow:
             "show_week_numbers": self.design_weeks.get_active(),
             "fixed_six_rows": self.design_fixed.get_active(),
             "minimal_grid": self.design_minimal.get_active(),
-            "focus_date": self.today if (self.year, self.month) == (self.today.year, self.today.month) else date(self.year, self.month, 1),
+            "focus_date": (
+                self.today
+                if (self.year, self.month) == (self.today.year, self.today.month)
+                else date(self.year, self.month, 1)
+            ),
         }
 
     def _build_inspector_page(self):
-        page = self._page("inspector", "Date Inspector", "Inspect a civil date, its ISO week, and its position in both month layouts.")
+        page = self._page(
+            "inspector",
+            "Date Inspector",
+            "Inspect a civil date, its ISO week, and its position in both month layouts.",
+        )
         self.date_picker = self.Gtk.Calendar()
         self.date_picker.connect("day-selected", self._calendar_date_selected)
         page.append(self.date_picker)
@@ -431,7 +507,9 @@ class StudioWindow:
         if getattr(self, "_inspector_updating", False):
             return
         selected = calendar_widget.get_date()
-        self._update_inspector(date(selected.get_year(), selected.get_month(), selected.get_day_of_month()))
+        self._update_inspector(
+            date(selected.get_year(), selected.get_month(), selected.get_day_of_month())
+        )
 
     def _update_inspector(self, day: date):
         if not hasattr(self, "inspector_facts"):
@@ -443,11 +521,19 @@ class StudioWindow:
             "Days remaining: %d in month, %d in year\n"
             "Natural grid row: %d Monday-first · %d Sunday-first"
             % (
-                day.strftime("%A, %B %d, %Y"), day.isoformat(), facts["day_of_year"],
-                facts["iso_week_year"], facts["iso_week"], facts["quarter"],
-                day.month, facts["days_in_month"], "yes" if facts["is_leap_year"] else "no",
-                facts["days_remaining_in_month"], facts["days_remaining_in_year"],
-                facts["monday_first_row"], facts["sunday_first_row"],
+                day.strftime("%A, %B %d, %Y"),
+                day.isoformat(),
+                facts["day_of_year"],
+                facts["iso_week_year"],
+                facts["iso_week"],
+                facts["quarter"],
+                day.month,
+                facts["days_in_month"],
+                "yes" if facts["is_leap_year"] else "no",
+                facts["days_remaining_in_month"],
+                facts["days_remaining_in_year"],
+                facts["monday_first_row"],
+                facts["sunday_first_row"],
             )
         )
         self.inspector_facts.set_text(text)
@@ -458,7 +544,9 @@ class StudioWindow:
             self._inspector_updating = False
 
     def _build_print_page(self):
-        page = self._page("print", "Print Studio", "Export a clean, print-sized SVG for A4 or US Letter paper.")
+        page = self._page(
+            "print", "Print Studio", "Export a clean, print-sized SVG for A4 or US Letter paper."
+        )
         self.print_month_label = self.Gtk.Label(label="", xalign=0)
         page.append(self.print_month_label)
         self.print_preview = self.Gtk.Picture()
@@ -478,13 +566,29 @@ class StudioWindow:
             children.append(child)
             child = child.get_next_sibling()
         children[0].connect("clicked", lambda *_: self._move_month(-1))
-        children[1].connect("clicked", lambda *_: self._set_month(self.today.year, self.today.month))
+        children[1].connect(
+            "clicked", lambda *_: self._set_month(self.today.year, self.today.month)
+        )
         children[2].connect("clicked", lambda *_: self._move_month(1))
-        children[3].connect("clicked", lambda *_: self._choose_save({"layout": "month-grid", "paper": "a4", "orientation": "portrait", "week_start": self._current_start()}))
+        children[3].connect(
+            "clicked",
+            lambda *_: self._choose_save(
+                {
+                    "layout": "month-grid",
+                    "paper": "a4",
+                    "orientation": "portrait",
+                    "week_start": self._current_start(),
+                }
+            ),
+        )
         page.append(controls)
 
     def _build_lab_page(self):
-        page = self._page("lab", "Calendar Lab", "Run geometry checks and inspect leap-year, century, and rollover fixtures.")
+        page = self._page(
+            "lab",
+            "Calendar Lab",
+            "Run geometry checks and inspect leap-year, century, and rollover fixtures.",
+        )
         self.lab_year = self._spin_year(2027)
         self.lab_month = _drop_down(self.Gtk, MONTH_NAMES)
         self.lab_month.set_selected(1)
@@ -494,7 +598,15 @@ class StudioWindow:
         self.lab_result.add_css_class("metric-card")
         run = self.Gtk.Button(label="Run year checks")
         run.connect("clicked", self._run_lab)
-        page.append(self._control_row(GtkLabel(self.Gtk, "Year:"), self.lab_year, GtkLabel(self.Gtk, "Month:"), self.lab_month, run))
+        page.append(
+            self._control_row(
+                GtkLabel(self.Gtk, "Year:"),
+                self.lab_year,
+                GtkLabel(self.Gtk, "Month:"),
+                self.lab_month,
+                run,
+            )
+        )
         preset_row = self.Gtk.FlowBox()
         preset_row.set_selection_mode(self.Gtk.SelectionMode.NONE)
         for label, year, month in PRESETS:
@@ -520,43 +632,70 @@ class StudioWindow:
         month = self.lab_month.get_selected() + 1
         lines = ["%s %d" % (MONTH_NAMES[month - 1], year)]
         year_checks = validate_year(year)
-        lines.append("Full-year invariants: %s (%d checks)" % ("PASS" if all(year_checks.values()) else "FAIL", len(year_checks)))
+        lines.append(
+            "Full-year invariants: %s (%d checks)"
+            % ("PASS" if all(year_checks.values()) else "FAIL", len(year_checks))
+        )
         for start in WeekStart:
             geometry = month_geometry(year, month, start)
             checks = validate_month(year, month, start)
             status = "PASS" if all(checks.values()) else "FAIL"
             first = date(year, month, 1).strftime("%A")
-            lines.extend([
-                "", "%s-first: %s" % (start.value.title(), status),
-                "  First weekday: %s · days: %d · leading cells: %d" % (first, geometry.days, geometry.leading_cells),
-                "  Natural rows: %d · grid size: %d" % (geometry.natural_rows, geometry.grid_size),
-            ])
-            lines.extend("  %s: %s" % (name.replace("_", " "), "PASS" if passed else "FAIL") for name, passed in checks.items())
+            lines.extend(
+                [
+                    "",
+                    "%s-first: %s" % (start.value.title(), status),
+                    "  First weekday: %s · days: %d · leading cells: %d"
+                    % (first, geometry.days, geometry.leading_cells),
+                    "  Natural rows: %d · grid size: %d"
+                    % (geometry.natural_rows, geometry.grid_size),
+                ]
+            )
+            lines.extend(
+                "  %s: %s" % (name.replace("_", " "), "PASS" if passed else "FAIL")
+                for name, passed in checks.items()
+            )
         try:
             next_year, next_month = move_month(year, month, 1)
             lines.extend(["", "Next month: %s %d" % (MONTH_NAMES[next_month - 1], next_year)])
             if month == 12:
-                lines.append("December-to-January rollover: PASS" if next_month == 1 and next_year == year + 1 else "December-to-January rollover: FAIL")
+                lines.append(
+                    "December-to-January rollover: PASS"
+                    if next_month == 1 and next_year == year + 1
+                    else "December-to-January rollover: FAIL"
+                )
         except ValueError:
             lines.extend(["", "Next month: outside supported year range"])
         self.lab_result.set_text("\n".join(lines))
 
     def _build_resources_page(self):
         page = self._page(
-            "resources", "Resources",
+            "resources",
+            "Resources",
             "Optional online Beta Calendars pages. The app never loads a resource unless you open it.",
         )
         groups = (
             ("Official Site", (("Beta Calendars", "https://www.betacalendars.com/"),)),
-            ("Monthly Calendars", (
-                ("Monthly Calendar", "https://www.betacalendars.com/monthly-calendar"),
-                ("Blank Calendar", "https://www.betacalendars.com/blank-calendar"),
-            )),
-            ("Planning Templates", (
-                ("Monthly Planner", "https://www.betacalendars.com/monthly-planner"),
-                *((month + " Calendar", "https://www.betacalendars.com/" + month.lower() + "-calendar.html")
-                  for month in MONTH_NAMES),
-            )),
+            (
+                "Monthly Calendars",
+                (
+                    ("Monthly Calendar", "https://www.betacalendars.com/monthly-calendar"),
+                    ("Blank Calendar", "https://www.betacalendars.com/blank-calendar"),
+                ),
+            ),
+            (
+                "Planning Templates",
+                (
+                    ("Monthly Planner", "https://www.betacalendars.com/monthly-planner"),
+                    *(
+                        (
+                            month + " Calendar",
+                            "https://www.betacalendars.com/" + month.lower() + "-calendar.html",
+                        )
+                        for month in MONTH_NAMES
+                    ),
+                ),
+            ),
         )
         for heading_text, links in groups:
             heading = self.Gtk.Label(label=heading_text, xalign=0)
@@ -570,14 +709,17 @@ class StudioWindow:
             page.append(list_box)
 
     def _build_about_page(self):
-        page = self._page("about", "About", "Offline calendar calculations and print layouts for Linux.")
+        page = self._page(
+            "about", "About", "Offline calendar calculations and print layouts for Linux."
+        )
         details = self.Gtk.Label(
             label=(
                 "Beta Calendars Studio %s\n\n"
                 "Calendar arithmetic, month grids, ISO-week inspection, diagnostics, and SVG layout generation run locally.\n\n"
                 "The app does not require an account and does not send personal calendar data, analytics, or telemetry. Online resources open only after you choose a link.\n\n"
                 "License: MIT"
-            ) % __version__,
+            )
+            % __version__,
             xalign=0,
             yalign=0,
             wrap=True,
@@ -601,7 +743,9 @@ class StudioWindow:
 
     def _set_svg_picture(self, picture, svg: str):
         self._preview_counter += 1
-        path = Path(tempfile.gettempdir()) / ("betacalendars-preview-%d.svg" % self._preview_counter)
+        path = Path(tempfile.gettempdir()) / (
+            "betacalendars-preview-%d.svg" % self._preview_counter
+        )
         path.write_text(svg, encoding="utf-8")
         picture.set_filename(str(path))
 
