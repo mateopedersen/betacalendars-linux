@@ -1,0 +1,12 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Beta Calendars Studio
+Comment=Offline calendar layouts and civil-date tools
+Exec=betacalendars-studio
+Icon=${SNAP}/meta/gui/betacalendars.png
+Terminal=false
+Categories=Office;Utility;Calendar;
+StartupNotify=true
+StartupWMClass=com.betacalendars.Studio
+Keywords=calendar;planner;date;print;ISO week;
