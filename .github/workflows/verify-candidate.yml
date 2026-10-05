@@ -39,7 +39,7 @@ jobs:
       - name: Launch the installed GTK application
         run: |
           set +e
-          GTK_A11Y=none timeout --signal=TERM 15s xvfb-run -a snap run betacalendars-studio >"$RUNNER_TEMP/gui.log" 2>&1
+          GTK_A11Y=none timeout --signal=TERM 15s xvfb-run -a snap run betacalendars.betacalendars-studio >"$RUNNER_TEMP/gui.log" 2>&1
           status=$?
           set -e
           cat "$RUNNER_TEMP/gui.log"
