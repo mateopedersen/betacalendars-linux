@@ -1,0 +1,49 @@
+name: Release snap
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-test-and-publish-candidate:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install test and GUI dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes gir1.2-gtk-4.0 python3-gi xvfb
+          python -m pip install -e . black build ruff
+      - name: Check source quality
+        run: |
+          ruff check src tests scripts
+          black --check --line-length 100 src tests scripts
+          PYTHONPATH=src python -m unittest discover -s tests -v
+          python -m build
+      - name: Capture and attach real Linux screenshots
+        run: PYTHONPATH=src xvfb-run -a /usr/bin/python3 scripts/capture_screenshots.py docs/screenshots
+      - uses: snapcore/action-build@v1
+        id: snapcraft
+      - name: Publish the tested build to candidate
+        if: ${{ vars.ENABLE_SNAP_PUBLISH == 'true' }}
+        uses: snapcore/action-publish@v1
+        env:
+          SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.STORE_LOGIN }}
+        with:
+          snap: ${{ steps.snapcraft.outputs.snap }}
+          release: candidate
+      - uses: actions/upload-artifact@v4
+        with:
+          name: betacalendars-linux-release-${{ github.ref_name }}
+          path: |
+            ${{ steps.snapcraft.outputs.snap }}
+            docs/screenshots/*.png
+          if-no-files-found: error
