@@ -1,0 +1,48 @@
+name: Verify Store candidate
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify-candidate:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Install the public Store candidate
+        run: sudo snap install betacalendars --channel=latest/candidate
+
+      - name: Confirm Store channel and confinement
+        run: |
+          snap list betacalendars
+          snap info betacalendars | tee "$RUNNER_TEMP/snap-info.txt"
+          grep -F 'latest/candidate:' "$RUNNER_TEMP/snap-info.txt"
+          grep -F 'confinement: strict' "$RUNNER_TEMP/snap-info.txt"
+
+      - name: Smoke-test the installed CLI
+        run: |
+          betacalendars month 2027 2 --week-start monday
+          betacalendars year 2027 --week-start sunday
+          betacalendars inspect 2021-01-01
+          betacalendars grid 2027 8
+          betacalendars validate 2027
+          betacalendars blank --month 2027-02 --paper a4 --orientation portrait --output "$RUNNER_TEMP/february.svg"
+          test -s "$RUNNER_TEMP/february.svg"
+
+      - name: Install a virtual display
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes xvfb
+
+      - name: Launch the installed GTK application
+        run: |
+          set +e
+          GTK_A11Y=none timeout --signal=TERM 15s xvfb-run -a snap run betacalendars-studio >"$RUNNER_TEMP/gui.log" 2>&1
+          status=$?
+          set -e
+          cat "$RUNNER_TEMP/gui.log"
+          if [ "$status" -ne 124 ]; then
+            echo "GUI test exited with status $status before the 15-second launch check completed." >&2
+            exit 1
+          fi
