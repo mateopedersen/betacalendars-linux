@@ -4,8 +4,7 @@ from datetime import date
 from html import escape
 from typing import List, Optional, Tuple
 
-from .calendar_engine import WeekStart, month_grid, month_geometry
-
+from .calendar_engine import WeekStart, month_geometry, month_grid
 
 PAPER_SIZES = {
     "a4": (595.28, 841.89),
@@ -53,7 +52,7 @@ def render_month_svg(
         if (focus_date.year, focus_date.month) != (year, month):
             raise ValueError("focus_date must be inside the displayed month")
         focus_row = (geometry.leading_cells + focus_date.day - 1) // 7
-        rows = rows[focus_row:focus_row + 1]
+        rows = rows[focus_row : focus_row + 1]
     row_count = len(rows)
 
     margin = 34.0
@@ -90,8 +89,8 @@ def render_month_svg(
         for index, label in enumerate(week_start.labels):
             x = grid_x + week_column + col_width * (index + 0.5)
             parts.append(
-            '<text x="%.2f" y="%.2f" text-anchor="middle" fill="#526174" font-family="sans-serif" font-size="10" font-weight="700">%s</text>'
-            % (x, grid_y - 9, label)
+                '<text x="%.2f" y="%.2f" text-anchor="middle" fill="#526174" font-family="sans-serif" font-size="10" font-weight="700">%s</text>'
+                % (x, grid_y - 9, label)
             )
 
     grid_x2 = grid_x + week_column
@@ -114,7 +113,14 @@ def render_month_svg(
             )
         parts.append(
             '<line x1="%.2f" y1="%.2f" x2="%.2f" y2="%.2f" stroke="%s" stroke-width="%.2f"/>'
-            % (grid_x, top, grid_x + week_column + grid_width, top, line_color, 0.55 if minimal_grid else 0.9)
+            % (
+                grid_x,
+                top,
+                grid_x + week_column + grid_width,
+                top,
+                line_color,
+                0.55 if minimal_grid else 0.9,
+            )
         )
         for column_index, cell in enumerate(row):
             x = grid_x2 + col_width * column_index
@@ -129,7 +135,13 @@ def render_month_svg(
             if not is_blank:
                 parts.append(
                     '<text x="%.2f" y="%.2f" fill="%s" font-family="sans-serif" font-size="10" font-weight="%s">%d</text>'
-                    % (x + 7, top + 16, text_color if is_current else muted_color, "600" if is_current else "400", cell.day)
+                    % (
+                        x + 7,
+                        top + 16,
+                        text_color if is_current else muted_color,
+                        "600" if is_current else "400",
+                        cell.day,
+                    )
                 )
             if writing_lines or layout in ("weekly-planner", "notes-calendar"):
                 line_start = top + 27.0
@@ -143,11 +155,25 @@ def render_month_svg(
                     )
         parts.append(
             '<line x1="%.2f" y1="%.2f" x2="%.2f" y2="%.2f" stroke="%s" stroke-width="%.2f"/>'
-            % (grid_x + week_column + grid_width, top, grid_x + week_column + grid_width, bottom, line_color, 0.55 if minimal_grid else 0.9)
+            % (
+                grid_x + week_column + grid_width,
+                top,
+                grid_x + week_column + grid_width,
+                bottom,
+                line_color,
+                0.55 if minimal_grid else 0.9,
+            )
         )
     parts.append(
         '<line x1="%.2f" y1="%.2f" x2="%.2f" y2="%.2f" stroke="%s" stroke-width="%.2f"/>'
-        % (grid_x, grid_bottom, grid_x + week_column + grid_width, grid_bottom, line_color, 0.55 if minimal_grid else 0.9)
+        % (
+            grid_x,
+            grid_bottom,
+            grid_x + week_column + grid_width,
+            grid_bottom,
+            line_color,
+            0.55 if minimal_grid else 0.9,
+        )
     )
 
     if notes_margin:
