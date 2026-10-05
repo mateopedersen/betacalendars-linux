@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>com.betacalendars.Studio</id>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>MIT</project_license>
+  <name>Beta Calendars Studio</name>
+  <summary>Offline calendar layouts and civil-date tools</summary>
+  <description>
+    <p>Browse Gregorian month and year grids, inspect ISO weeks, check calendar geometry, and design blank printable calendars. Core date calculations and SVG exports run locally.</p>
+    <p>The optional resource library opens Beta Calendars pages only after the user selects a link. The application does not read personal calendars or send analytics or telemetry.</p>
+  </description>
+  <launchable type="desktop-id">com.betacalendars.Studio.desktop</launchable>
+  <developer id="com.betacalendars">
+    <name>Beta Calendars</name>
+  </developer>
+  <url type="homepage">https://www.betacalendars.com/</url>
+  <url type="bugtracker">https://github.com/mateopedersen/betacalendars-linux/issues</url>
+  <url type="vcs-browser">https://github.com/mateopedersen/betacalendars-linux</url>
+  <releases>
+    <release version="1.0.0" date="2026-10-05" />
+  </releases>
+</component>
