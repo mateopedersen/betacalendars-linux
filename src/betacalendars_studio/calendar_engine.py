@@ -51,7 +51,9 @@ def days_in_month(year: int, month: int) -> int:
     return calendar.monthrange(year, month)[1]
 
 
-def month_geometry(year: int, month: int, week_start: WeekStart = WeekStart.MONDAY) -> MonthGeometry:
+def month_geometry(
+    year: int, month: int, week_start: WeekStart = WeekStart.MONDAY
+) -> MonthGeometry:
     """Calculate natural month-grid geometry without fixing the row count."""
     count = days_in_month(year, month)
     first = date(year, month, 1).weekday()
